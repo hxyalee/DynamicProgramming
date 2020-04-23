@@ -111,7 +111,6 @@ function makeChange(coins, total){
 	* "2D recursion": For all 1 <= *i* <= *n* and all 1 <= *j* <= *m*, let c[*i,j*] be the length of the longest commmon subsequence of the truncated sequences <br />
 	*S<sub>i</sub> = < a<sub>1</sub>, a<sub>2</sub>, ..., a<sub>i</sub> >* and *S<sub>j</sub>' = < b<sub>1</sub>, b<sub>2</sub>, ..., b<sub>j</sub>>*
 	* Recursion: Fill the table row by row, so the ordering of subproblems is in a lexicographical orderding: 
-
 	<div align="center">
 
 	*c[i,j]* | Condition
@@ -119,25 +118,77 @@ function makeChange(coins, total){
 	0		 | i == 0 or j == 0
 	c[i-1, j-1] | i,j > 0 && a<sub>i</sub> == b<sub>j</sub>
 	max{c[i-1,j], c[i,j-1]} | i,j > 0 && a<sub>i</sub> != b<sub>j</sub>
-
 	</div>
-
-	####### Code
-	```javascript
-	function longestCommonSubsequence(s1,s2){
-		let memo = new Array(s1.length + 1);
-		for(let i = 0; i < memo.length; i++){
-			memo[i]= new Array(s2.length + 1).fill(0);
-		}
-		for(let i = 1; i < memo.length; i++){
-			for(let j = 1; j < memo[i].length; j++){
-				// Look above for why i - 1?
-				if(s1.charAt(i-1) === s2.charAt(j-1)) 
-					memo[i][j] = 1  + memo[i-1][j-1]
-				else
-					memo[i][j] = Math.max(memo[i-1][j], memo[i][j-1])
-			}
-		}
-		return memo[s1.length][s2.length]
+###### Code
+```javascript
+function longestCommonSubsequence(s1,s2){
+	let memo = new Array(s1.length + 1);
+	for(let i = 0; i < memo.length; i++){
+		memo[i]= new Array(s2.length + 1).fill(0);
 	}
-	```
+	for(let i = 1; i < memo.length; i++){
+		for(let j = 1; j < memo[i].length; j++){
+			// Look above for why i - 1?
+			if(s1.charAt(i-1) === s2.charAt(j-1)) 
+				memo[i][j] = 1  + memo[i-1][j-1]
+			else
+				memo[i][j] = Math.max(memo[i-1][j], memo[i][j-1])
+		}
+	}
+	return memo[s1.length][s2.length]
+}
+```
+
+## Edit distance
+* Given two strings A of length *n* and B of length *m*, transform A into B. Find the lowest total cost transformation of A into B where *inserting* a character costs *c<sub>i</sub>*, *deleting* a character coosts *c<sub>d</sub>* and *replacement* costs *c<sub>r</sub>*
+> If all operations have a unit cost, then look for the minimal number of such operations requried to transform A into B; this number is called the *edit distance* between A and B.
+> If the sequences are sequences of DNA bases and the costs reflect the probabilities of the corresponding mutations, then the minimal cost represents how closely related the two sequences are.
+* Solution:
+	* Let C(*i,j*) be the minimum cost transforming the sequence A[*1...i*] into sequence B[*1...j*] for all *i* <= *n* and all *j* <= *m*.
+	* Subproblems P(*i,j*): Find the minimum cost *C(i,j)* of transforming the sequence A[*1...i*] into the sequence B[*1...j*] for all *i* <= *n* and *j* <= *m*
+	* Recursion: Fill the table of solutions C(*i,j*) for subproblems P(*i,j*) row by row: <br />
+	###### <div align="center">C(*i,j*) = min{*c<sub>d</sub> + C(i-1, j), C(i,j-1) + c<sub>i</sub>,* min{*C(i-1, j-1), C(i-1,j-1) + c<sub>r</sub>*}}</div>
+	> cost *c<sub>d</sub> + C(i-1, j)* corresponds to the option if you delete A[*i*] and then recursively transform A[1...*i-1*] into B[1...*j*] <br />
+	> cost *C(i,j-1) + c<sub>i</sub>* conrresponds to the option if you first transform A[1...*i*] to B[1...*j-1*] and append B[*j*] at the end <br />
+	> Third option corresponds to first transforming A[1...*i-1*] to B[1...*j-1*] and <br />
+	> if A[*i*] is already equal to B[*j*], do nothing; thus incurring a cost of only C(*i-1,j-1*) <br /> 
+	> if A[*i*] is not equal to B[*j*], replace A[*i*] by B[*j*] with total cost of C(*i-1, j-1*) + c<sub>r</sub> 
+###### Code
+```javascript
+function minimumEditDistance(s1, s2){
+	let memo = new Array(s1.length + 1);
+	for(let i = 0; i < memo.length; i++){
+		memo[i] = new Array(s2.length + 1);
+		memo[i][0] = i;
+	}	
+	for(let i = 0; i < memo[0].length; i++) memo[0][i] = i;
+	for(let i = 1; i < memo.length; i++){
+		for(j = 1; j < memo[i].length; j++){
+			if(s1.charAt(i - 1) === s2.charAt(j - 1)) 
+				memo[i][j] = memo[i-1][j-1]
+			else
+				memo[i][j] = Math.min(memo[i-1][j], memo[i-1][j-1], memo[i][j-1]) + 1;
+		}
+	}	
+	return memo[s1.length][s2.length]
+}
+```
+
+## Belman-Ford Algorithm
+#### Shortest path with negative weights
+> Dijkstra's algorithm only works for graph with positive weight
+
+* Given a directed weighted graph *G = (V,E)* with weights that can be negative but without cycles of negative total weight and a vertex *s* element of *V*, find the shortest path from vertex *s* to every other vertex *t*.
+* Solution:
+	* Since there are no negative weight cycles, the shortest path cannot contain cycles, because a cycle can be excised to produce a shorter path.
+	* Thus, every shortest path can have at most |*V*| - 1 edges.
+	* Subproblems: For every *v* element of *V* and every *i* (1<=*i*,+*n*-1), let *opt(i,v)* be the lengtg of shortest path from *s* to *v* which contains at most *i* edges.
+	* Goal is to find for every vertex *t* element of *G*. the value of *opt(n-1, t)* and the path which achieves such a length.
+	> Shortest path from a vertex *v* to *t* is (*v,p<sub>1</sub>, p<sub>2</sub>, ..., p<sub>k</sub>, t*) then (*<sub>1</sub>, p<sub>2</sub>,..., p<sub>k</sub>, t*) must be the shortest path from *p<sub>1</sub>* to *t* and (*v,p<sub>1</sub>, p<sub>2</sub>, ..., p<sub>k</sub>, t*) must also be the shortest path from *v* to *t*.
+	* Let the length of the shortest path from *s* to *v* among all paths which contain at most *i* edges be *opt(i,v)* and let *pred(i,v)* be the immediate predecessir of vertex *v* on such shortest path.
+	* Recursion: <br />
+	###### <div align="center"> *opt(i,v)* = min{*opt(i-1,v), min{opt(i-1,p) + w(e(p,v))*}} <br />
+	*pred(i,v)* = min{*opt(i-1,p) + w(e(p,v))*} >= *pred(i-1,v)* ? *pred(i-1,v)* : arg min{*opt(i-1,p) + w(e(p,v))*} </div> <br />
+	> Computation of *opt(i,v)* runs in time *O(*|*V*| X |*E*|*)* becanse *i* <= |*V*| - 1 and for each *v*, min is taken over all edges *e(p,v)* incident to *v*; thus in each round, all edges are inspected. <br />
+	> The algorithm produces shortest paths from *s* to every other vertex in the graph.
+ 
