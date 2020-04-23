@@ -27,7 +27,8 @@
 	* For each 1 <= *i* <= n **Subproblem** P(*i*):<br /> *Find a subsequence of the sequence A[1...i] of maximum length in which the values are strictly increasing and which ends with A[i].*
 	* Recursion: Assume all subproblems for *j < i* has been solved. <br /> Then, look for all A[*m*] such that *m < i* and such that *A[m] < A[i]*; <br /> Among those, pick *m* which produced the longest increasing subsequecne ending with *A[m]* and extend it with *A[i]* to obtain the longest increasing subsequence which ends with *A[i]*.
 	> *Why does this prodice optimal solutions to subproblems?<br /> Truncating optimal solution for P(i) push produce optimal solution of the subproblem P(m), otherwise we could find a better solution for P(i) as well, by extending such better solution of P(m)*
-	* Store in the i<sup>th</sup> slot of the table the length of the longest increasing subsequnce ending with A[*i*] and *m* such that the optimal solution for P(*i*) extends the optimal solution for P(*m*). <br /> So, for every *i <= n* the longest increasing subsequence of the sequence A[1...*i*] is found which ends with A[*i*]. <br /> Then, pick the longest one from such subsequence. <br /> **Time complexity: *O(n<sup>2</sup>)***
+	* Store in the i<sup>th</sup> slot of the table the length of the longest increasing subsequnce ending with A[*i*] and *m* such that the optimal solution for P(*i*) extends the optimal solution for P(*m*). <br /> So, for every *i <= n* the longest increasing subsequence of the sequence A[1...*i*] is found which ends with A[*i*]. <br /> Then, pick the longest one from such subsequence. 
+	* **Time complexity: *O(n<sup>2</sup>)***
 ###### Code
 ```javascript 
 function longestIncreasingSubsequence(seq){
@@ -40,9 +41,10 @@ function longestIncreasingSubsequence(seq){
 			if(seq[j] < seq[i]) memo[i] = memo[j] + 1;
 		}
 	}
-	return Math.max.apply(null, memo)
+	return Math.max.apply(null, memo);
 }
 ```
+
 ## Making Change
 * **Instance:** You are given *n* types of coin denominations of values *v<sub>1</sub> < v<sub>2</sub> < ... v<sub>n</sub>*(all integers). Assume *v<sub>1</sub> = 1*, so that you can always make change for any integer amount. Assume that you ahve an unlimited supply of coins of each denomination.
 * **Task:** Give an algorithm which makes change for any given integer amount *C* with as few coins as possible.
@@ -66,12 +68,12 @@ function makeChange(coins, total){
 		for(let j = 0; j < memo[i].length; j++){
 			if(i == 0) memo[i][j] = Math.floor(j/coins[i]);
 			else{
-				if(coins[i] > j) memo[i][j] = memo[i-1][j]
-				else memo[i][j] = Math.min(memo[i][j-coins[i]] + 1, memo[i-1][j])
+				if(coins[i] > j) memo[i][j] = memo[i-1][j];
+				else memo[i][j] = Math.min(memo[i][j-coins[i]] + 1, memo[i-1][j]);
 			}
 		}
 	}
-	return memo[memo.length-1][memo[0].length-1]
+	return memo[memo.length-1][memo[0].length-1];
 }
 ```
 
@@ -81,7 +83,41 @@ function makeChange(coins, total){
 	* Let *s* be the total sum of all integers in the set; consider the Knapsack problem (without duplicates) with the knapsack of size *s*/2 and with each integer *x<sub>i</sub>* of both size and value equal to *x<sub>i</sub>*.
 	* Claim:
 		* The best packing of such knapsack produces optimally balaned partition, with *S<sub>1</sub>* being all the integers in the knapsack and *S<sub>2</sub>* all the integers left out of the knapsack.
-	* Why? Since *s = s<sub>1</sub> + s<sub>2</sub>*, we obtain 2(*s*/2 - *s<sub>1</sub>*) = *s - 2*s<sub>1</sub>* = *s<sub>2</sub> - s<sub>1</sub>*.
+	* Why? Since *s = s<sub>1</sub> + s<sub>2</sub>*, we obtain 2(*s*/2 - *s<sub>1</sub>*) = *s - 2s<sub>1</sub>* = *s<sub>2</sub> - s<sub>1</sub>*.
 	* Thus, minimising *s*/2-*s<sub>1</sub>* will minimise *s<sub>2</sub> - s<sub>1</sub>*.
 	* So, all we have to do is find a subset of these numbers with the largest possible total sum which fits inside a knapsack of size *s*/2.
 	
+## Matrix Multiplication
+* Given a sequence of matrices *A<sub>1</sub>, A<sub>2</sub>, ..., A<sub>n</sub>* of compatible sizes, where the size of matrix *A<sub>i</sub>* is s<sub>i-1</sub> x s<sub>i</sub>, group them in such a way as to minimise the total number of multiplications needed to find the product matrix.
+* Solution:
+	* For 1 <= *i* <= *j* <= *n*, the subproblems P(*i,j*) to be considered are: "group matrices *A<sub>i</sub>A<sub>i+1</sub>...A<sub>j-1</sub>A<sub>j</sub>" so as to *minimise the number of multiplcations needed to find the product matrix"*. Let *m(i,j)* be this minimal number.
+	> Looks like *"2D recursion"*, but a simple linear recursion is sufficient: group the subproblems by the value of *w = j - i* and recurse on *h*. <br /> At each recursive step *w*, solve all subproblems P(*i,j*) for which *j - i = w*.
+	* Recursion: Examine all possible ways to place the principal (outermost) multiplication, splitting the chain into product (A<sub>i</sub>...A<sub>k</sub>) \* (A<sub>k+1</sub>...A<sub>j</sub>).
+	* Since *k - i < j - i* and *j - (k + 1) < j - i*, the solutions of subproblems P(*i,k*) and P(*k+1,j*) are already computed.
+	* The product A<sub>i</sub>...A<sub>k</sub> is a s<sub>i-1</sub> X s<sub>k</sub> matrix *L* and A<sub>k+1</sub>...A<sub>j</sub> is a s<sub>k</sub> X s<sub>j</sub> matrix *R*. Multiplying *L* by *R* takes s<sub>i-1</sub>s<sub>k</sub>s<sub>j</sub> multiplications.
+	* The recursion is <br />
+	###### <div align="center">*m(i,j) = min{m(i,k) + m(k+1,j) + s<sub>i-1</sub>s<sub>j</sub>s<sub>k</sub> : i<=k<=j-1}* </div>
+	> The recursion step is a brute force search but the whole algorithm is not,because the subproblems are only solved once and there are only *O(n<sup>2</sup>)* many such subproblems.
+	* The index *k* for which the minimum in the recursive definition of *m(i,j)* is achived can be stored to retrieve the optimal placement of brackets for the whole chain A<sub>1</sub>...A<sub>n</sub>.
+	* Thus, in the *m<sup>th</sup>* slot of the table constructed, we store all pairs *(m(i,j),k)* for which *j-i = m*.
+
+## Longest Common Subsequence
+* Assume we want to compare how similar two sequences of symbols *S* and *S'* are.
+> e.g. How similar are genetic codes of two viruses. This can tell us if one is just a genetic mutation of another.
+* A sequence *s* is a **subsequence** of another sequences *S* if *s* can be obtained by deleting some of the symbols of *S* (while preserving the order of the remaining symbols).
+* Given two sequences *S=< a<sub>1</sub>, a<sub>2</sub>, ..., a<sub>n</sub> >* and *S'=< b<sub>1</sub>, b<sub>2</sub>, ..., b<sub>n</sub>*, a sequence *s* is a **Longest Common Subsequence** of *S,S'* and is of maximal posiible length.
+* Solution:
+	* First find the length of the longest common subsequence of *S, S'*.
+	* "2D recursion": For all 1 <= *i* <= *n* and all 1 <= *j* <= *m*, let c[*i,j*] be the length of the longest commmon subsequence of the truncated sequences <br />
+	*S<sub>i</sub> = < a<sub>1</sub>, a<sub>2</sub>, ..., a<sub>i</sub> >* and *S<sub>j</sub>' = < b<sub>1</sub>, b<sub>2</sub>, ..., b<sub>j</sub>>*
+	* Recursion: Fill the table row by row, so the ordering of subproblems is in a lexicographical orderding: 
+
+	<div align="center">
+
+	*c[i,j]* | Condition
+	------------------ | -------------------
+	0		 | i == 0 or j == 0
+	c[i-1, j-1] | i,j > 0 && a<sub>i</sub> == b<sub>j</sub>
+	max{c[i-1,j], c[i,j-1]} | i,j > 0 && a<sub>i</sub> != b<sub>j</sub>
+
+	</div>
