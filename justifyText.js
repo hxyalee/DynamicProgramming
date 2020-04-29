@@ -51,6 +51,18 @@ let justify = (arr, maxlength) => {
 		}
 	}
 
+	let res = ''
+	let i = 0;
+	let j;
+	do{
+		j = result[i];
+		for(let k = i; k <j; k++)
+			res += arr[k] + ' '
+		res += '\n'
+		i = j 
+	}while(j < arr.length);
+	console.log(res);
+/*
 	let ans = new Map()
 	for(let i = 0; i < nWords; i++){
 		if(ans.has(result[i])){
@@ -67,6 +79,12 @@ let justify = (arr, maxlength) => {
 			seen.add(result[i])
 		}
 	}
+*/
 }
 
-justify(['i','love','you', 'sike', 'youre','berkenshire?', 'a', 'fat', 'old', ',man'], 32)
+justify([
+	'i',
+	'love',
+	'you',
+	'jk'
+	], 7)

@@ -139,6 +139,33 @@ function longestCommonSubsequence(s1,s2){
 }
 ```
 
+## Knapsack problem
+* Given a set if *n* items, where each item *i*n is specified by a size *s<sub>i</sub>* and value *v<sub>i</sub>*, and a size bound *S* (size of *knapsack*), fing the subset of items of maximum total value such that the sum of their sizes is at most *S* (they all fit into the knapsack)
+
+*Exponential time*
+```c
+// S - space left, n - no. items to choose from
+knapsack(n,S) { 
+	if(n == 0) return 0;
+	if(s_n > S) result = knapsack(n-1, S);
+	else result = max(knapsack(n-1, S - s_n), knapsack(n-1, S));
+	return result
+}
+```
+
+* Since there are only *nS* *different pairs* of values the arguments can possibly take on, we can memoize. 
+```c
+knapsack(n, S){
+	if(n == 0) return 0;
+	if(arr[n][S] != NULL) return arr[n][S];
+	if(s_n > S) result = Value(n-1, S);
+	else result = max(knapsack(n-1, S-s_n), knapsack(n-1, S));
+	arr[n][S] = result;
+	return result;
+}
+```
+* Since any given pair of arguments to *knapsack* can pass through the array check only once, and in doing so produces *at most* two recursive calls, we have at most *2n(S+1)* recursive calls in total; hence total time is *O(nS)*
+
 ## Edit distance
 * Given two strings A of length *n* and B of length *m*, transform A into B. Find the lowest total cost transformation of A into B where *inserting* a character costs *c<sub>i</sub>*, *deleting* a character coosts *c<sub>d</sub>* and *replacement* costs *c<sub>r</sub>*
 > If all operations have a unit cost, then look for the minimal number of such operations requried to transform A into B; this number is called the *edit distance* between A and B.
@@ -191,4 +218,3 @@ function minimumEditDistance(s1, s2){
 	*pred(i,v)* = min{*opt(i-1,p) + w(e(p,v))*} >= *pred(i-1,v)* ? *pred(i-1,v)* : arg min{*opt(i-1,p) + w(e(p,v))*} </div> <br />
 	> Computation of *opt(i,v)* runs in time *O(*|*V*| X |*E*|*)* becanse *i* <= |*V*| - 1 and for each *v*, min is taken over all edges *e(p,v)* incident to *v*; thus in each round, all edges are inspected. <br />
 	> The algorithm produces shortest paths from *s* to every other vertex in the graph.
- 
