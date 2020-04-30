@@ -218,3 +218,57 @@ function minimumEditDistance(s1, s2){
 	*pred(i,v)* = min{*opt(i-1,p) + w(e(p,v))*} >= *pred(i-1,v)* ? *pred(i-1,v)* : arg min{*opt(i-1,p) + w(e(p,v))*} </div> <br />
 	> Computation of *opt(i,v)* runs in time *O(*|*V*| X |*E*|*)* becanse *i* <= |*V*| - 1 and for each *v*, min is taken over all edges *e(p,v)* incident to *v*; thus in each round, all edges are inspected. <br />
 	> The algorithm produces shortest paths from *s* to every other vertex in the graph.
+
+## Weighted Job Sceudling
+* Given *N* jobs where every jobs are represented by *s<sub>i</sub>, e<sub>i</sub>, p<sub>i</sub>* (start time, end time, value/profit, respectively) find the maximum profit subset of jobs such that no two jobs in the subset overlap
+* Solution
+	* Recursive:
+		1. Sort jobs according to finish time
+		2. Base case: If *n = 1* return *arr[o]*
+		3. Return the maximum of:
+			* Maximum profit by excluding current job 
+			* Maximum profit by including the current job
+		** How to find the profit including the current job?**
+			* Idea is to find the latest job nbefore the current job that doesn't conflict with current job *arr[n-1]*. 
+			* Once such job was found, recur for all jobs unitl that job and add profit of current job to result
+```javascript
+class Job{
+    constructor(s,e,p){
+        this.start = s;
+        this.end = e;
+        this.val = p;
+    }
+}
+// Find the latest job (in sorted array) that doesnt conflix with the job[i]
+let latestNonConflict = (arr, i) => {
+    for(let j = i - 1; j >= 0; j --){
+        // does not overlap
+        if(arr[j].end <= arr[i].start) 
+            return j;
+    }
+    return -1;
+}
+
+var jobScheduling = function(startTime, endTime, profit) {
+    let n = endTime.length;
+    let job = new Array(n);
+    // combine every input into a single Job class 
+    for(let i = 0; i < n; i++)
+        job[i] = new Job(startTime[i], endTime[i], profit[i]);
+    job.sort((a,b) => a.end - b.end);
+    
+    let memo = new Array(n);
+    memo[0] = job[0].val;
+    
+    for(let i = 1; i < n; i++){        
+        let currPrice = job[i].val;
+        let l = latestNonConflict(job, i);
+        if(l != -1)
+            currPrice += memo[l];
+        // store maximum of including and excluding
+        memo[i] = Math.max(currPrice, memo[i-1]);
+    }
+    return memo[n-1];
+};
+```
+> O(n<sup>2</sup>) time complextty. This algorithm can be further optimised to O(*nLogn*) using binaey search on *latestNonConflict()* instead of linear search
